@@ -1,10 +1,10 @@
-name: docguard
+name: driftcheck
 
 on:
   workflow_call:
     inputs:
       version:
-        description: 'docguard version to use'
+        description: 'driftcheck version to use'
         required: false
         default: 'latest'
         type: string
@@ -28,20 +28,20 @@ jobs:
       - name: Install ripgrep
         run: sudo apt-get install -y ripgrep
 
-      - name: Install docguard
+      - name: Install driftcheck
         run: |
           if [ "${{ inputs.version }}" = "latest" ]; then
-            VERSION=$(curl -s https://api.github.com/repos/deichrenner/docguard/releases/latest | jq -r .tag_name)
+            VERSION=$(curl -s https://api.github.com/repos/deichrenner/driftcheck/releases/latest | jq -r .tag_name)
           else
             VERSION="${{ inputs.version }}"
           fi
-          curl -L "https://github.com/deichrenner/docguard/releases/download/${VERSION}/docguard-linux-x86_64" -o /usr/local/bin/docguard
-          chmod +x /usr/local/bin/docguard
+          curl -L "https://github.com/deichrenner/driftcheck/releases/download/${VERSION}/driftcheck-linux-x86_64" -o /usr/local/bin/driftcheck
+          chmod +x /usr/local/bin/driftcheck
 
-      - name: Run docguard
+      - name: Run driftcheck
         env:
-          DOCGUARD_API_KEY: ${{ secrets.api_key }}
-          DOCGUARD_CONFIG: ${{ inputs.config }}
+          DRIFTCHECK_API_KEY: ${{ secrets.api_key }}
+          DRIFTCHECK_CONFIG: ${{ inputs.config }}
         run: |
           # Get the base ref for comparison
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -49,4 +49,4 @@ jobs:
           else
             BASE="HEAD~1"
           fi
-          docguard check --range "${BASE}..HEAD" --no-tui
+          driftcheck check --range "${BASE}..HEAD" --no-tui

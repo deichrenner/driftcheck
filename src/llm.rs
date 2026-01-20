@@ -1,5 +1,5 @@
 use crate::config::{Config, LlmConfig};
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tracing::{debug, warn};
@@ -40,7 +40,7 @@ impl LlmClient {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(config.timeout))
             .build()
-            .map_err(|e| DocguardError::LlmError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::LlmError(e.to_string()))?;
 
         Ok(Self {
             client,
@@ -94,7 +94,7 @@ impl LlmClient {
             }
         }
 
-        Err(last_error.unwrap_or_else(|| DocguardError::LlmError("Unknown error".to_string())))
+        Err(last_error.unwrap_or_else(|| DriftcheckError::LlmError("Unknown error".to_string())))
     }
 
     async fn make_request(&self, url: &str, request: &ChatRequest) -> Result<String> {
@@ -108,16 +108,16 @@ impl LlmClient {
             .await
             .map_err(|e| {
                 if e.is_timeout() {
-                    DocguardError::LlmTimeout(self.config.timeout)
+                    DriftcheckError::LlmTimeout(self.config.timeout)
                 } else {
-                    DocguardError::LlmError(e.to_string())
+                    DriftcheckError::LlmError(e.to_string())
                 }
             })?;
 
         let status = response.status();
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
-            return Err(DocguardError::LlmError(format!(
+            return Err(DriftcheckError::LlmError(format!(
                 "HTTP {}: {}",
                 status, body
             )));
@@ -126,13 +126,13 @@ impl LlmClient {
         let chat_response: ChatResponse = response
             .json()
             .await
-            .map_err(|e| DocguardError::LlmResponseParse(e.to_string()))?;
+            .map_err(|e| DriftcheckError::LlmResponseParse(e.to_string()))?;
 
         chat_response
             .choices
             .first()
             .map(|c| c.message.content.clone())
-            .ok_or_else(|| DocguardError::LlmResponseParse("No response choices".to_string()))
+            .ok_or_else(|| DriftcheckError::LlmResponseParse("No response choices".to_string()))
     }
 }
 
@@ -154,18 +154,18 @@ fn parse_search_queries(response: &str) -> Result<Vec<String>> {
 
     // Find the start of the JSON array
     let start = response.find('[').ok_or_else(|| {
-        DocguardError::LlmResponseParse("No JSON array found in response".to_string())
+        DriftcheckError::LlmResponseParse("No JSON array found in response".to_string())
     })?;
 
     // Find the matching end bracket
     let end = response.rfind(']').ok_or_else(|| {
-        DocguardError::LlmResponseParse("No closing bracket found".to_string())
+        DriftcheckError::LlmResponseParse("No closing bracket found".to_string())
     })?;
 
     let json_str = &response[start..=end];
 
     let queries: Vec<String> = serde_json::from_str(json_str)
-        .map_err(|e| DocguardError::LlmResponseParse(e.to_string()))?;
+        .map_err(|e| DriftcheckError::LlmResponseParse(e.to_string()))?;
 
     Ok(queries)
 }
@@ -214,14 +214,14 @@ fn parse_issues(response: &str) -> Result<Vec<RawIssue>> {
             {
                 return Ok(vec![]);
             }
-            return Err(DocguardError::LlmResponseParse(
+            return Err(DriftcheckError::LlmResponseParse(
                 "Could not parse issues from response".to_string(),
             ));
         }
     };
 
     let end = response.rfind(']').ok_or_else(|| {
-        DocguardError::LlmResponseParse("No closing bracket found".to_string())
+        DriftcheckError::LlmResponseParse("No closing bracket found".to_string())
     })?;
 
     let json_str = &response[start..=end];
@@ -232,7 +232,7 @@ fn parse_issues(response: &str) -> Result<Vec<RawIssue>> {
     }
 
     let issues: Vec<RawIssue> = serde_json::from_str(json_str)
-        .map_err(|e| DocguardError::LlmResponseParse(format!("Failed to parse issues: {}", e)))?;
+        .map_err(|e| DriftcheckError::LlmResponseParse(format!("Failed to parse issues: {}", e)))?;
 
     Ok(issues)
 }

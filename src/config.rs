@@ -1,4 +1,4 @@
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
@@ -160,7 +160,7 @@ fn default_theme() -> String {
 }
 
 fn default_cache_dir() -> String {
-    ".git/docguard_cache".to_string()
+    ".git/driftcheck_cache".to_string()
 }
 
 fn default_ttl() -> u64 {
@@ -242,7 +242,7 @@ impl Default for Config {
 
 impl Config {
     /// Find and load the configuration file.
-    /// Searches in order: DOCGUARD_CONFIG env var, .docguard.toml, docguard.toml
+    /// Searches in order: DRIFTCHECK_CONFIG env var, .driftcheck.toml, driftcheck.toml
     pub fn load() -> Result<Self> {
         let path = Self::find_config_path()?;
         Self::load_from_path(&path)
@@ -258,7 +258,7 @@ impl Config {
     /// Find the configuration file path
     pub fn find_config_path() -> Result<PathBuf> {
         // Check environment variable first
-        if let Ok(path) = env::var("DOCGUARD_CONFIG") {
+        if let Ok(path) = env::var("DRIFTCHECK_CONFIG") {
             let path = PathBuf::from(path);
             if path.exists() {
                 return Ok(path);
@@ -268,19 +268,19 @@ impl Config {
         // Find git root
         let git_root = Self::find_git_root()?;
 
-        // Check .docguard.toml
-        let dotfile = git_root.join(".docguard.toml");
+        // Check .driftcheck.toml
+        let dotfile = git_root.join(".driftcheck.toml");
         if dotfile.exists() {
             return Ok(dotfile);
         }
 
-        // Check docguard.toml
-        let regular = git_root.join("docguard.toml");
+        // Check driftcheck.toml
+        let regular = git_root.join("driftcheck.toml");
         if regular.exists() {
             return Ok(regular);
         }
 
-        Err(DocguardError::ConfigNotFound)
+        Err(DriftcheckError::ConfigNotFound)
     }
 
     /// Find the git repository root
@@ -295,14 +295,14 @@ impl Config {
 
             match path.parent() {
                 Some(parent) => path = parent,
-                None => return Err(DocguardError::NotGitRepo),
+                None => return Err(DriftcheckError::NotGitRepo),
             }
         }
     }
 
-    /// Check if docguard is enabled (config + env var)
+    /// Check if driftcheck is enabled (config + env var)
     pub fn is_enabled(&self) -> bool {
-        if env::var("DOCGUARD_DISABLED").map(|v| v == "1").unwrap_or(false) {
+        if env::var("DRIFTCHECK_DISABLED").map(|v| v == "1").unwrap_or(false) {
             return false;
         }
         self.general.enabled
@@ -310,40 +310,40 @@ impl Config {
 
     /// Get the API key from environment or file
     /// Checks in order:
-    /// 1. DOCGUARD_API_KEY env var
-    /// 2. DOCGUARD_API_KEY_FILE env var (reads key from file path)
+    /// 1. DRIFTCHECK_API_KEY env var
+    /// 2. DRIFTCHECK_API_KEY_FILE env var (reads key from file path)
     pub fn get_api_key() -> Result<String> {
         // First try direct env var
-        if let Ok(key) = env::var("DOCGUARD_API_KEY") {
+        if let Ok(key) = env::var("DRIFTCHECK_API_KEY") {
             return Ok(key);
         }
 
         // Then try reading from file
-        if let Ok(path) = env::var("DOCGUARD_API_KEY_FILE") {
+        if let Ok(path) = env::var("DRIFTCHECK_API_KEY_FILE") {
             return fs::read_to_string(&path)
                 .map(|s| s.trim().to_string())
-                .map_err(|_| DocguardError::ApiKeyNotFound);
+                .map_err(|_| DriftcheckError::ApiKeyNotFound);
         }
 
-        Err(DocguardError::ApiKeyNotFound)
+        Err(DriftcheckError::ApiKeyNotFound)
     }
 
     /// Check if debug mode is enabled
     pub fn is_debug() -> bool {
-        env::var("DOCGUARD_DEBUG").map(|v| v == "1").unwrap_or(false)
+        env::var("DRIFTCHECK_DEBUG").map(|v| v == "1").unwrap_or(false)
     }
 
     /// Save the configuration to the default path
     pub fn save(&self) -> Result<()> {
         let git_root = Self::find_git_root()?;
-        let path = git_root.join(".docguard.toml");
+        let path = git_root.join(".driftcheck.toml");
         self.save_to_path(&path)
     }
 
     /// Save the configuration to a specific path
     pub fn save_to_path(&self, path: &Path) -> Result<()> {
         let contents = toml::to_string_pretty(self)
-            .map_err(|e| DocguardError::ConfigInvalid(e.to_string()))?;
+            .map_err(|e| DriftcheckError::ConfigInvalid(e.to_string()))?;
         fs::write(path, contents)?;
         Ok(())
     }

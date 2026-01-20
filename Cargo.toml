@@ -1,10 +1,10 @@
 [package]
-name = "docguard"
+name = "driftcheck"
 version = "0.1.0"
 edition = "2021"
 description = "A pre-push hook that detects documentation drift using LLMs"
 license = "MIT"
-repository = "https://github.com/yourusername/docguard"
+repository = "https://github.com/yourusername/driftcheck"
 keywords = ["git", "documentation", "llm", "pre-push", "hook"]
 categories = ["development-tools", "command-line-utilities"]
 

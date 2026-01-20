@@ -14,7 +14,7 @@ mod tui;
 use clap::Parser;
 use cli::{CacheAction, Cli, Commands};
 use config::Config;
-use error::{DocguardError, Result};
+use error::{DriftcheckError, Result};
 use std::env;
 use std::process;
 use tracing::{error, info};
@@ -65,7 +65,7 @@ async fn run() -> Result<()> {
 
 async fn cmd_init(force: bool) -> Result<()> {
     let git_root = Config::find_git_root()?;
-    let config_path = git_root.join(".docguard.toml");
+    let config_path = git_root.join(".driftcheck.toml");
 
     if config_path.exists() && !force {
         eprintln!(
@@ -85,10 +85,10 @@ async fn cmd_init(force: bool) -> Result<()> {
     git::install_hook(&git_root, force)?;
     println!("Installed pre-push hook");
 
-    println!("\ndocguard initialized successfully!");
+    println!("\ndriftcheck initialized successfully!");
     println!("\nNext steps:");
-    println!("  1. Set your API key: export DOCGUARD_API_KEY=<your-key>");
-    println!("  2. Edit .docguard.toml to customize paths and settings");
+    println!("  1. Set your API key: export DRIFTCHECK_API_KEY=<your-key>");
+    println!("  2. Edit .driftcheck.toml to customize paths and settings");
     println!("  3. Make some changes and push to test!");
 
     Ok(())
@@ -98,7 +98,7 @@ async fn cmd_check(range: Option<String>, no_tui: bool) -> Result<()> {
     let config = Config::load()?;
 
     if !config.is_enabled() {
-        return Err(DocguardError::Disabled);
+        return Err(DriftcheckError::Disabled);
     }
 
     // Get the diff
@@ -136,8 +136,8 @@ fn cmd_config(edit: bool, show_path: bool) -> Result<()> {
     if show_path {
         match Config::find_config_path() {
             Ok(path) => println!("{}", path.display()),
-            Err(DocguardError::ConfigNotFound) => {
-                eprintln!("No configuration file found. Run 'docguard init' to create one.");
+            Err(DriftcheckError::ConfigNotFound) => {
+                eprintln!("No configuration file found. Run 'driftcheck init' to create one.");
             }
             Err(e) => return Err(e),
         }
@@ -151,16 +151,16 @@ fn cmd_config(edit: bool, show_path: bool) -> Result<()> {
         let status = process::Command::new(&editor)
             .arg(&path)
             .status()
-            .map_err(|e| DocguardError::ConfigInvalid(format!("Failed to open editor: {}", e)))?;
+            .map_err(|e| DriftcheckError::ConfigInvalid(format!("Failed to open editor: {}", e)))?;
 
         if !status.success() {
-            return Err(DocguardError::ConfigInvalid("Editor exited with error".to_string()));
+            return Err(DriftcheckError::ConfigInvalid("Editor exited with error".to_string()));
         }
     } else {
         // Print current config
         let config = Config::load()?;
         let toml = toml::to_string_pretty(&config)
-            .map_err(|e| DocguardError::ConfigInvalid(e.to_string()))?;
+            .map_err(|e| DriftcheckError::ConfigInvalid(e.to_string()))?;
         println!("{}", toml);
     }
 
@@ -171,7 +171,7 @@ fn cmd_enable() -> Result<()> {
     let mut config = Config::load()?;
     config.general.enabled = true;
     config.save()?;
-    println!("docguard enabled.");
+    println!("driftcheck enabled.");
     Ok(())
 }
 
@@ -179,7 +179,7 @@ fn cmd_disable() -> Result<()> {
     let mut config = Config::load()?;
     config.general.enabled = false;
     config.save()?;
-    println!("docguard disabled.");
+    println!("driftcheck disabled.");
     Ok(())
 }
 
@@ -213,7 +213,7 @@ async fn cmd_hook() -> Result<()> {
 
     let config = match Config::load() {
         Ok(c) => c,
-        Err(DocguardError::ConfigNotFound) => {
+        Err(DriftcheckError::ConfigNotFound) => {
             // No config = not initialized, allow push
             return Ok(());
         }
@@ -226,13 +226,13 @@ async fn cmd_hook() -> Result<()> {
 
     let diff = match git::get_diff(&None) {
         Ok(d) => d,
-        Err(DocguardError::NoUpstream) => {
+        Err(DriftcheckError::NoUpstream) => {
             // No upstream, likely first push, allow
             return Ok(());
         }
         Err(e) => {
             if config.general.allow_push_on_error {
-                eprintln!("docguard warning: {}", e);
+                eprintln!("driftcheck warning: {}", e);
                 return Ok(());
             }
             return Err(e);
@@ -247,7 +247,7 @@ async fn cmd_hook() -> Result<()> {
         Ok(i) => i,
         Err(e) => {
             if config.general.allow_push_on_error {
-                eprintln!("docguard warning: {}", e);
+                eprintln!("driftcheck warning: {}", e);
                 return Ok(());
             }
             return Err(e);
@@ -264,7 +264,7 @@ async fn cmd_hook() -> Result<()> {
     } else {
         output::print_issues(&issues);
         eprintln!("\nPush blocked. Run `git push` from a terminal to review and fix issues,");
-        eprintln!("or run `docguard check` to see details.");
+        eprintln!("or run `driftcheck check` to see details.");
         eprintln!("\nTo bypass (not recommended): git push --no-verify");
         process::exit(1);
     }

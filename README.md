@@ -1,8 +1,8 @@
-# docguard
+# driftcheck
 
 A fast, reliable pre-push hook that detects documentation drift using LLMs.
 
-When you change code, docguard automatically finds related documentation and checks if your changes introduce any inconsistencies—before you push.
+When you change code, driftcheck automatically finds related documentation and checks if your changes introduce any inconsistencies—before you push.
 
 ## Features
 
@@ -20,32 +20,32 @@ When you change code, docguard automatically finds related documentation and che
 
 ### Pre-built Binaries (Recommended)
 
-Download from [GitHub Releases](https://github.com/deichrenner/docguard/releases):
+Download from [GitHub Releases](https://github.com/deichrenner/driftcheck/releases):
 
 ```bash
 # Linux (x86_64)
-curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-linux-x86_64 -o docguard
-chmod +x docguard
-sudo mv docguard /usr/local/bin/
+curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-linux-x86_64 -o driftcheck
+chmod +x driftcheck
+sudo mv driftcheck /usr/local/bin/
 
 # Linux (ARM64)
-curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-linux-aarch64 -o docguard
-chmod +x docguard
-sudo mv docguard /usr/local/bin/
+curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-linux-aarch64 -o driftcheck
+chmod +x driftcheck
+sudo mv driftcheck /usr/local/bin/
 
 # macOS (Apple Silicon)
-curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-macos-aarch64 -o docguard
-chmod +x docguard
-sudo mv docguard /usr/local/bin/
+curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-macos-aarch64 -o driftcheck
+chmod +x driftcheck
+sudo mv driftcheck /usr/local/bin/
 
 # macOS (Intel)
-curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-macos-x86_64 -o docguard
-chmod +x docguard
-sudo mv docguard /usr/local/bin/
+curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-macos-x86_64 -o driftcheck
+chmod +x driftcheck
+sudo mv driftcheck /usr/local/bin/
 
 # Windows (PowerShell)
-Invoke-WebRequest -Uri https://github.com/deichrenner/docguard/releases/latest/download/docguard-windows-x86_64.exe -OutFile docguard.exe
-Move-Item docguard.exe C:\Windows\System32\
+Invoke-WebRequest -Uri https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-windows-x86_64.exe -OutFile driftcheck.exe
+Move-Item driftcheck.exe C:\Windows\System32\
 ```
 
 ### From Source
@@ -56,7 +56,7 @@ cargo install --path .
 
 # Or build manually
 cargo build --release
-cp target/release/docguard ~/.local/bin/
+cp target/release/driftcheck ~/.local/bin/
 ```
 
 ### Prerequisites
@@ -69,12 +69,12 @@ cp target/release/docguard ~/.local/bin/
 ```bash
 # Initialize in your repository
 cd your-repo
-docguard init
+driftcheck init
 
 # Set your API key (or use .env file - see below)
-export DOCGUARD_API_KEY=your-api-key
+export DRIFTCHECK_API_KEY=your-api-key
 
-# Make some changes, then push—docguard runs automatically
+# Make some changes, then push—driftcheck runs automatically
 git push
 ```
 
@@ -104,7 +104,7 @@ git push
 
 ### Analysis Approach
 
-docguard is intentionally **conservative** to minimize false positives:
+driftcheck is intentionally **conservative** to minimize false positives:
 
 - **Only flags factual errors** — Documentation that explicitly contradicts the code
 - **Checks git history** — Reviews recent commits to avoid flagging issues you've already fixed
@@ -113,27 +113,27 @@ docguard is intentionally **conservative** to minimize false positives:
 ## Commands
 
 ```bash
-docguard init              # Initialize in current repo (creates config + hook)
-docguard check             # Run analysis manually
-docguard check --range REF # Check specific commit range
-docguard check --no-tui    # Force non-interactive output
+driftcheck init              # Initialize in current repo (creates config + hook)
+driftcheck check             # Run analysis manually
+driftcheck check --range REF # Check specific commit range
+driftcheck check --no-tui    # Force non-interactive output
 
-docguard config            # Show current configuration
-docguard config --edit     # Open config in $EDITOR
-docguard config --path     # Show config file path
+driftcheck config            # Show current configuration
+driftcheck config --edit     # Open config in $EDITOR
+driftcheck config --path     # Show config file path
 
-docguard enable            # Enable docguard
-docguard disable           # Disable without uninstalling
+driftcheck enable            # Enable driftcheck
+driftcheck disable           # Disable without uninstalling
 
-docguard cache clear       # Clear cached queries
-docguard cache stats       # Show cache statistics
+driftcheck cache clear       # Clear cached queries
+driftcheck cache stats       # Show cache statistics
 
-docguard install-hook      # Reinstall the pre-push hook
+driftcheck install-hook      # Reinstall the pre-push hook
 ```
 
 ## Configuration
 
-Configuration is stored in `.docguard.toml` (or `docguard.toml`) in your repo root:
+Configuration is stored in `.driftcheck.toml` (or `driftcheck.toml`) in your repo root:
 
 ```toml
 [general]
@@ -163,7 +163,7 @@ auto_apply = false
 
 [cache]
 enabled = true
-dir = ".git/docguard_cache"
+dir = ".git/driftcheck_cache"
 ttl = 3600  # Cache TTL in seconds
 
 [prompts]
@@ -173,12 +173,12 @@ ttl = 3600  # Cache TTL in seconds
 
 ## Secrets & API Keys
 
-docguard supports multiple ways to provide your API key:
+driftcheck supports multiple ways to provide your API key:
 
 ### 1. Environment Variable (simplest)
 
 ```bash
-export DOCGUARD_API_KEY=sk-...
+export DRIFTCHECK_API_KEY=sk-...
 ```
 
 ### 2. `.env` File (recommended for local dev)
@@ -187,10 +187,10 @@ Create a `.env` file in your repo root (add to `.gitignore`!):
 
 ```bash
 # .env
-DOCGUARD_API_KEY=sk-...
+DRIFTCHECK_API_KEY=sk-...
 ```
 
-docguard automatically loads `.env` files from:
+driftcheck automatically loads `.env` files from:
 1. Git repository root
 2. Current working directory
 
@@ -199,7 +199,7 @@ docguard automatically loads `.env` files from:
 Point to a file containing the API key:
 
 ```bash
-export DOCGUARD_API_KEY_FILE=/path/to/secret/api-key
+export DRIFTCHECK_API_KEY_FILE=/path/to/secret/api-key
 ```
 
 This is useful for CI systems that write secrets to temporary files.
@@ -208,11 +208,11 @@ This is useful for CI systems that write secrets to temporary files.
 
 | Variable | Description |
 |----------|-------------|
-| `DOCGUARD_API_KEY` | LLM API key |
-| `DOCGUARD_API_KEY_FILE` | Path to file containing API key |
-| `DOCGUARD_CONFIG` | Custom config file path |
-| `DOCGUARD_DISABLED=1` | Disable without editing config |
-| `DOCGUARD_DEBUG=1` | Enable verbose logging |
+| `DRIFTCHECK_API_KEY` | LLM API key |
+| `DRIFTCHECK_API_KEY_FILE` | Path to file containing API key |
+| `DRIFTCHECK_CONFIG` | Custom config file path |
+| `DRIFTCHECK_DISABLED=1` | Disable without editing config |
+| `DRIFTCHECK_DEBUG=1` | Enable verbose logging |
 
 ## CI Integration
 
@@ -228,7 +228,7 @@ on:
     branches: [main]
 
 jobs:
-  docguard:
+  driftcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -238,31 +238,31 @@ jobs:
       - name: Install ripgrep
         run: sudo apt-get install -y ripgrep
 
-      - name: Install docguard
+      - name: Install driftcheck
         run: |
-          curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-linux-x86_64 -o docguard
-          chmod +x docguard
-          sudo mv docguard /usr/local/bin/
+          curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-linux-x86_64 -o driftcheck
+          chmod +x driftcheck
+          sudo mv driftcheck /usr/local/bin/
 
       - name: Check documentation
         env:
-          DOCGUARD_API_KEY: ${{ secrets.DOCGUARD_API_KEY }}
-        run: docguard check --range origin/${{ github.base_ref }}..HEAD --no-tui
+          DRIFTCHECK_API_KEY: ${{ secrets.DRIFTCHECK_API_KEY }}
+        run: driftcheck check --range origin/${{ github.base_ref }}..HEAD --no-tui
 ```
 
 ### GitLab CI
 
 ```yaml
-docguard:
+driftcheck:
   image: debian:bookworm-slim
   before_script:
     - apt-get update && apt-get install -y curl ripgrep
-    - curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-linux-x86_64 -o /usr/local/bin/docguard
-    - chmod +x /usr/local/bin/docguard
+    - curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-linux-x86_64 -o /usr/local/bin/driftcheck
+    - chmod +x /usr/local/bin/driftcheck
   script:
-    - docguard check --range origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..HEAD --no-tui
+    - driftcheck check --range origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..HEAD --no-tui
   variables:
-    DOCGUARD_API_KEY: $DOCGUARD_API_KEY
+    DRIFTCHECK_API_KEY: $DRIFTCHECK_API_KEY
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
@@ -273,7 +273,7 @@ docguard:
 version: 2.1
 
 jobs:
-  docguard:
+  driftcheck:
     docker:
       - image: cimg/base:stable
     steps:
@@ -282,24 +282,24 @@ jobs:
           name: Install dependencies
           command: |
             sudo apt-get update && sudo apt-get install -y ripgrep
-            curl -L https://github.com/deichrenner/docguard/releases/latest/download/docguard-linux-x86_64 -o docguard
-            chmod +x docguard
-            sudo mv docguard /usr/local/bin/
+            curl -L https://github.com/deichrenner/driftcheck/releases/latest/download/driftcheck-linux-x86_64 -o driftcheck
+            chmod +x driftcheck
+            sudo mv driftcheck /usr/local/bin/
       - run:
           name: Check documentation
-          command: docguard check --range origin/main..HEAD --no-tui
+          command: driftcheck check --range origin/main..HEAD --no-tui
           environment:
-            DOCGUARD_API_KEY: ${DOCGUARD_API_KEY}
+            DRIFTCHECK_API_KEY: ${DRIFTCHECK_API_KEY}
 
 workflows:
   check:
     jobs:
-      - docguard
+      - driftcheck
 ```
 
 ## TUI Keybindings
 
-When issues are detected in a TTY, docguard launches an interactive TUI:
+When issues are detected in a TTY, driftcheck launches an interactive TUI:
 
 | Key | Action |
 |-----|--------|
@@ -338,7 +338,7 @@ After exiting the TUI, review all changes with `git diff` before committing.
 ### OpenAI (default)
 
 ```bash
-export DOCGUARD_API_KEY=sk-...
+export DRIFTCHECK_API_KEY=sk-...
 ```
 
 ### Anthropic (via litellm)
@@ -347,8 +347,8 @@ export DOCGUARD_API_KEY=sk-...
 # Start litellm proxy
 litellm --model claude-sonnet-4-20250514
 
-# Configure docguard
-# In .docguard.toml:
+# Configure driftcheck
+# In .driftcheck.toml:
 # [llm]
 # base_url = "http://localhost:4000"
 # model = "claude-sonnet-4-20250514"
@@ -357,24 +357,24 @@ litellm --model claude-sonnet-4-20250514
 ### Ollama (local)
 
 ```bash
-# In .docguard.toml:
+# In .driftcheck.toml:
 # [llm]
 # base_url = "http://localhost:11434/v1"
 # model = "llama2"
 
 # Ollama doesn't need an API key, but set a dummy value
-export DOCGUARD_API_KEY=ollama
+export DRIFTCHECK_API_KEY=ollama
 ```
 
 ### OpenRouter
 
 ```bash
-# In .docguard.toml:
+# In .driftcheck.toml:
 # [llm]
 # base_url = "https://openrouter.ai/api/v1"
 # model = "anthropic/claude-3.5-sonnet"
 
-export DOCGUARD_API_KEY=sk-or-...
+export DRIFTCHECK_API_KEY=sk-or-...
 ```
 
 ## Behavior Matrix
@@ -389,10 +389,10 @@ export DOCGUARD_API_KEY=sk-or-...
 
 ## Reducing False Positives
 
-docguard is designed to be conservative, but if you're still seeing too many false positives:
+driftcheck is designed to be conservative, but if you're still seeing too many false positives:
 
-1. **Clear the cache** after updating: `docguard cache clear`
-2. **Customize the prompt** in `.docguard.toml` to be stricter
+1. **Clear the cache** after updating: `driftcheck cache clear`
+2. **Customize the prompt** in `.driftcheck.toml` to be stricter
 3. **Narrow doc paths** to only check the most critical documentation
 4. **Use ignore patterns** to exclude generated or less important docs
 
@@ -404,7 +404,7 @@ The default prompt only flags issues where documentation is **factually wrong** 
 
 ## Bypassing the Hook
 
-If you need to push without running docguard:
+If you need to push without running driftcheck:
 
 ```bash
 git push --no-verify

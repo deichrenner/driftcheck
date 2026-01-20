@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -75,7 +75,7 @@ pub fn store_queries(diff: &str, queries: &[String]) -> Result<()> {
     // Create cache directory if it doesn't exist
     if !cache_dir.exists() {
         fs::create_dir_all(&cache_dir)
-            .map_err(|e| DocguardError::CacheError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
     }
 
     let key = cache_key(diff);
@@ -87,10 +87,10 @@ pub fn store_queries(diff: &str, queries: &[String]) -> Result<()> {
     };
 
     let content = serde_json::to_string_pretty(&entry)
-        .map_err(|e| DocguardError::CacheError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
 
     fs::write(&cache_file, content)
-        .map_err(|e| DocguardError::CacheError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
 
     debug!("Cached queries to {}", cache_file.display());
 
@@ -103,7 +103,7 @@ pub fn clear() -> Result<()> {
 
     if cache_dir.exists() {
         fs::remove_dir_all(&cache_dir)
-            .map_err(|e| DocguardError::CacheError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
     }
 
     Ok(())
@@ -125,7 +125,7 @@ pub fn stats() -> Result<CacheStats> {
     let mut size_bytes = 0;
 
     for entry in fs::read_dir(&cache_dir)
-        .map_err(|e| DocguardError::CacheError(e.to_string()))?
+        .map_err(|e| DriftcheckError::CacheError(e.to_string()))?
     {
         if let Ok(entry) = entry {
             if let Ok(meta) = entry.metadata() {
