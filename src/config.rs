@@ -38,7 +38,7 @@ Output ONLY valid JSON, no explanation. Example: ["process_data", "API endpoint"
 const DEFAULT_SUGGESTIONS_PROMPT: &str = r#"Given the documentation issue identified, suggest a minimal fix.
 Output as a unified diff patch that can be applied with `patch -p1`."#;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub general: GeneralConfig,
@@ -227,19 +227,6 @@ impl Default for CacheConfig {
     }
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            general: GeneralConfig::default(),
-            docs: DocsConfig::default(),
-            llm: LlmConfig::default(),
-            prompts: PromptsConfig::default(),
-            tui: TuiConfig::default(),
-            cache: CacheConfig::default(),
-        }
-    }
-}
-
 impl Config {
     /// Find and load the configuration file.
     /// Searches in order: DRIFTCHECK_CONFIG env var, .driftcheck.toml, driftcheck.toml
@@ -346,11 +333,5 @@ impl Config {
             .map_err(|e| DriftcheckError::ConfigInvalid(e.to_string()))?;
         fs::write(path, contents)?;
         Ok(())
-    }
-
-    /// Generate a default configuration file contents
-    pub fn generate_default_toml() -> String {
-        let config = Config::default();
-        toml::to_string_pretty(&config).unwrap_or_else(|_| String::new())
     }
 }

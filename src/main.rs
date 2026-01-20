@@ -3,7 +3,6 @@ mod cache;
 mod cli;
 mod config;
 mod error;
-mod fix;
 mod git;
 mod llm;
 mod output;
