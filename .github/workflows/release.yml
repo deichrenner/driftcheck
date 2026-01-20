@@ -94,20 +94,21 @@ jobs:
         with:
           path: artifacts
 
-      - name: Create checksums
+      - name: Prepare release files
         run: |
-          cd artifacts
-          for dir in */; do
-            cd "$dir"
-            sha256sum * > SHA256SUMS
-            cd ..
+          mkdir -p release
+          # Move binaries from subdirectories to flat release folder
+          for dir in artifacts/*/; do
+            cp "$dir"* release/
           done
+          # Create single checksums file
+          cd release
+          sha256sum * > SHA256SUMS
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            artifacts/**/*
+          files: release/*
           generate_release_notes: true
           draft: false
         env:
