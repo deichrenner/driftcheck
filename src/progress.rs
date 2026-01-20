@@ -77,7 +77,13 @@ impl MultiProgress {
     pub fn update(&self, detail: &str) {
         if self.current > 0 && self.current <= self.steps.len() {
             let step = self.steps[self.current - 1];
-            let msg = format!("[{}/{}] {} - {}", self.current, self.steps.len(), step, detail);
+            let msg = format!(
+                "[{}/{}] {} - {}",
+                self.current,
+                self.steps.len(),
+                step,
+                detail
+            );
             self.progress.set_message(msg);
         }
     }

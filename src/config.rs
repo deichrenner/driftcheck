@@ -289,7 +289,10 @@ impl Config {
 
     /// Check if driftcheck is enabled (config + env var)
     pub fn is_enabled(&self) -> bool {
-        if env::var("DRIFTCHECK_DISABLED").map(|v| v == "1").unwrap_or(false) {
+        if env::var("DRIFTCHECK_DISABLED")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
             return false;
         }
         self.general.enabled
@@ -317,7 +320,9 @@ impl Config {
 
     /// Check if debug mode is enabled
     pub fn is_debug() -> bool {
-        env::var("DRIFTCHECK_DEBUG").map(|v| v == "1").unwrap_or(false)
+        env::var("DRIFTCHECK_DEBUG")
+            .map(|v| v == "1")
+            .unwrap_or(false)
     }
 
     /// Save the configuration to the default path

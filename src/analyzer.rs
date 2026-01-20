@@ -149,4 +149,3 @@ fn truncate_to_budget(mut chunks: Vec<llm::DocChunk>, max_tokens: usize) -> Vec<
 
     result
 }
-
