@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2021"
 description = "A pre-push hook that detects documentation drift using LLMs"
 license = "MIT"
-repository = "https://github.com/yourusername/driftcheck"
+repository = "https://github.com/deichrenner/driftcheck"
 keywords = ["git", "documentation", "llm", "pre-push", "hook"]
 categories = ["development-tools", "command-line-utilities"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
