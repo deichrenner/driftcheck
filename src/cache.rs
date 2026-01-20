@@ -74,8 +74,7 @@ pub fn store_queries(diff: &str, queries: &[String]) -> Result<()> {
 
     // Create cache directory if it doesn't exist
     if !cache_dir.exists() {
-        fs::create_dir_all(&cache_dir)
-            .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
+        fs::create_dir_all(&cache_dir).map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
     }
 
     let key = cache_key(diff);
@@ -89,8 +88,7 @@ pub fn store_queries(diff: &str, queries: &[String]) -> Result<()> {
     let content = serde_json::to_string_pretty(&entry)
         .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
 
-    fs::write(&cache_file, content)
-        .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
+    fs::write(&cache_file, content).map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
 
     debug!("Cached queries to {}", cache_file.display());
 
@@ -102,8 +100,7 @@ pub fn clear() -> Result<()> {
     let cache_dir = get_cache_dir()?;
 
     if cache_dir.exists() {
-        fs::remove_dir_all(&cache_dir)
-            .map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
+        fs::remove_dir_all(&cache_dir).map_err(|e| DriftcheckError::CacheError(e.to_string()))?;
     }
 
     Ok(())

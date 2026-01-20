@@ -132,7 +132,9 @@ impl App {
             }
 
             if self.should_abort {
-                return Err(DriftcheckError::TuiError("Push aborted by user".to_string()));
+                return Err(DriftcheckError::TuiError(
+                    "Push aborted by user".to_string(),
+                ));
             }
         }
 
@@ -270,14 +272,9 @@ impl App {
         let file_display = issue.file.display().to_string();
 
         // Spawn background task
-        let handle = tokio::spawn(async move {
-            apply_fix_task(config, issue).await
-        });
+        let handle = tokio::spawn(async move { apply_fix_task(config, issue).await });
 
-        self.active_task = Some(ActiveTask {
-            issue_idx,
-            handle,
-        });
+        self.active_task = Some(ActiveTask { issue_idx, handle });
 
         self.status_message = Some(format!("Generating fix for {}...", file_display));
     }
@@ -377,16 +374,17 @@ impl App {
 
         let status_text = if applying > 0 {
             Span::styled(
-                format!("{} {}", self.get_spinner_char(), self.status_message.as_deref().unwrap_or("Applying fix...")),
+                format!(
+                    "{} {}",
+                    self.get_spinner_char(),
+                    self.status_message.as_deref().unwrap_or("Applying fix...")
+                ),
                 self.theme.highlight_style(),
             )
         } else if let Some(ref msg) = self.status_message {
             Span::styled(msg.as_str(), self.theme.highlight_style())
         } else if pending > 0 {
-            Span::styled(
-                "Documentation issues detected",
-                self.theme.warning_style(),
-            )
+            Span::styled("Documentation issues detected", self.theme.warning_style())
         } else {
             Span::styled("All issues addressed", self.theme.success_style())
         };
@@ -504,11 +502,7 @@ impl App {
                 self.get_spinner_char()
             )
         } else {
-            format!(
-                " Issue {}/{} ",
-                self.current_issue + 1,
-                self.issues.len()
-            )
+            format!(" Issue {}/{} ", self.current_issue + 1, self.issues.len())
         };
 
         let desc_para = Paragraph::new(lines)
@@ -656,7 +650,11 @@ async fn apply_fix_task(config: Config, issue: Issue) -> Result<String> {
 }
 
 /// Generate a fixed version of the documentation using LLM
-async fn generate_doc_fix(config: &Config, issue: &Issue, original_content: &str) -> Result<String> {
+async fn generate_doc_fix(
+    config: &Config,
+    issue: &Issue,
+    original_content: &str,
+) -> Result<String> {
     use crate::llm::LlmClient;
 
     let client = LlmClient::new(&config.llm)?;

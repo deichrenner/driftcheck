@@ -14,10 +14,7 @@ pub fn check_ripgrep() -> Result<()> {
 }
 
 /// Find relevant documentation based on search queries
-pub async fn find_relevant_docs(
-    config: &DocsConfig,
-    queries: &[String],
-) -> Result<Vec<DocChunk>> {
+pub async fn find_relevant_docs(config: &DocsConfig, queries: &[String]) -> Result<Vec<DocChunk>> {
     check_ripgrep()?;
 
     // Expand doc paths using glob
@@ -28,7 +25,11 @@ pub async fn find_relevant_docs(
         return Ok(vec![]);
     }
 
-    debug!("Searching {} doc files with {} queries", doc_files.len(), queries.len());
+    debug!(
+        "Searching {} doc files with {} queries",
+        doc_files.len(),
+        queries.len()
+    );
     debug!("Doc files: {:?}", doc_files);
     debug!("Search queries: {:?}", queries);
 
@@ -39,9 +40,7 @@ pub async fn find_relevant_docs(
         let query = query.clone();
         let files = doc_files.clone();
 
-        handles.push(tokio::spawn(async move {
-            search_query(&query, &files)
-        }));
+        handles.push(tokio::spawn(async move { search_query(&query, &files) }));
     }
 
     // Collect results
@@ -69,9 +68,7 @@ pub async fn find_relevant_docs(
     }
 
     // Sort by file and line
-    all_chunks.sort_by(|a, b| {
-        a.file.cmp(&b.file).then(a.start_line.cmp(&b.start_line))
-    });
+    all_chunks.sort_by(|a, b| a.file.cmp(&b.file).then(a.start_line.cmp(&b.start_line)));
 
     // Merge adjacent chunks in the same file
     let merged = merge_adjacent_chunks(all_chunks);
@@ -116,14 +113,18 @@ fn expand_doc_paths(paths: &[String], ignore: &[String]) -> Result<Vec<PathBuf>>
 
 fn search_query(query: &str, files: &[PathBuf]) -> Result<Vec<DocChunk>> {
     // Use ripgrep to search
-    let file_args: Vec<String> = files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+    let file_args: Vec<String> = files
+        .iter()
+        .map(|p| p.to_string_lossy().to_string())
+        .collect();
 
     let output = Command::new("rg")
         .args([
             "--line-number",
             "--no-heading",
             "--color=never",
-            "-C", "3",  // 3 lines of context
+            "-C",
+            "3", // 3 lines of context
             "--",
             query,
         ])

@@ -9,12 +9,7 @@ pub fn print_issues(issues: &[Issue]) {
     eprintln!();
 
     for (i, issue) in issues.iter().enumerate() {
-        eprintln!(
-            "Issue {}: {}:{}",
-            i + 1,
-            issue.file.display(),
-            issue.line
-        );
+        eprintln!("Issue {}: {}:{}", i + 1, issue.file.display(), issue.line);
         eprintln!("  {}", issue.description);
 
         if !issue.doc_excerpt.is_empty() {

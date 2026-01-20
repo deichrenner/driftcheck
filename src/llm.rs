@@ -50,7 +50,10 @@ impl LlmClient {
     }
 
     pub async fn chat(&self, system_prompt: &str, user_message: &str) -> Result<String> {
-        let url = format!("{}/chat/completions", self.config.base_url.trim_end_matches('/'));
+        let url = format!(
+            "{}/chat/completions",
+            self.config.base_url.trim_end_matches('/')
+        );
 
         debug!("LLM request to: {}", url);
         debug!("LLM model: {}", self.config.model);
@@ -140,9 +143,7 @@ impl LlmClient {
 pub async fn generate_search_queries(config: &Config, diff: &str) -> Result<Vec<String>> {
     let client = LlmClient::new(&config.llm)?;
 
-    let response = client
-        .chat(&config.prompts.search_queries, diff)
-        .await?;
+    let response = client.chat(&config.prompts.search_queries, diff).await?;
 
     // Parse JSON array of queries
     parse_search_queries(&response)
@@ -158,9 +159,9 @@ fn parse_search_queries(response: &str) -> Result<Vec<String>> {
     })?;
 
     // Find the matching end bracket
-    let end = response.rfind(']').ok_or_else(|| {
-        DriftcheckError::LlmResponseParse("No closing bracket found".to_string())
-    })?;
+    let end = response
+        .rfind(']')
+        .ok_or_else(|| DriftcheckError::LlmResponseParse("No closing bracket found".to_string()))?;
 
     let json_str = &response[start..=end];
 
@@ -185,7 +186,12 @@ pub async fn analyze_consistency(
     // Format doc chunks for the prompt
     let docs_context = doc_chunks
         .iter()
-        .map(|c| format!("--- {} (lines {}-{}) ---\n{}", c.file, c.start_line, c.end_line, c.content))
+        .map(|c| {
+            format!(
+                "--- {} (lines {}-{}) ---\n{}",
+                c.file, c.start_line, c.end_line, c.content
+            )
+        })
         .collect::<Vec<_>>()
         .join("\n\n");
 
@@ -218,9 +224,9 @@ fn parse_issues(response: &str) -> Result<Vec<RawIssue>> {
         }
     };
 
-    let end = response.rfind(']').ok_or_else(|| {
-        DriftcheckError::LlmResponseParse("No closing bracket found".to_string())
-    })?;
+    let end = response
+        .rfind(']')
+        .ok_or_else(|| DriftcheckError::LlmResponseParse("No closing bracket found".to_string()))?;
 
     let json_str = &response[start..=end];
 

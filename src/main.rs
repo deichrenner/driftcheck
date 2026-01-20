@@ -153,7 +153,9 @@ fn cmd_config(edit: bool, show_path: bool) -> Result<()> {
             .map_err(|e| DriftcheckError::ConfigInvalid(format!("Failed to open editor: {}", e)))?;
 
         if !status.success() {
-            return Err(DriftcheckError::ConfigInvalid("Editor exited with error".to_string()));
+            return Err(DriftcheckError::ConfigInvalid(
+                "Editor exited with error".to_string(),
+            ));
         }
     } else {
         // Print current config
