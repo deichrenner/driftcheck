@@ -1,0 +1,37 @@
+[package]
+name = "docguard"
+version = "0.1.0"
+edition = "2021"
+description = "A pre-push hook that detects documentation drift using LLMs"
+license = "MIT"
+repository = "https://github.com/yourusername/docguard"
+keywords = ["git", "documentation", "llm", "pre-push", "hook"]
+categories = ["development-tools", "command-line-utilities"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+ratatui = "0.29"
+crossterm = "0.28"
+dirs = "5"
+thiserror = "1"
+glob = "0.3"
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+similar = "2"
+which = "7"
+atty = "0.2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenvy = "0.15.7"
+indicatif = "0.17"
+console = "0.15"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1

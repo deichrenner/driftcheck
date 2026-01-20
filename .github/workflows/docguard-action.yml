@@ -1,0 +1,52 @@
+name: docguard
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'docguard version to use'
+        required: false
+        default: 'latest'
+        type: string
+      config:
+        description: 'Path to config file'
+        required: false
+        type: string
+    secrets:
+      api_key:
+        description: 'LLM API key'
+        required: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for diff
+
+      - name: Install ripgrep
+        run: sudo apt-get install -y ripgrep
+
+      - name: Install docguard
+        run: |
+          if [ "${{ inputs.version }}" = "latest" ]; then
+            VERSION=$(curl -s https://api.github.com/repos/deichrenner/docguard/releases/latest | jq -r .tag_name)
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          curl -L "https://github.com/deichrenner/docguard/releases/download/${VERSION}/docguard-linux-x86_64" -o /usr/local/bin/docguard
+          chmod +x /usr/local/bin/docguard
+
+      - name: Run docguard
+        env:
+          DOCGUARD_API_KEY: ${{ secrets.api_key }}
+          DOCGUARD_CONFIG: ${{ inputs.config }}
+        run: |
+          # Get the base ref for comparison
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.base_ref }}"
+          else
+            BASE="HEAD~1"
+          fi
+          docguard check --range "${BASE}..HEAD" --no-tui
