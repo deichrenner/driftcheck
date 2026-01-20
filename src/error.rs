@@ -2,8 +2,8 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum DocguardError {
-    #[error("Configuration file not found. Run 'docguard init' to create one.")]
+pub enum DriftcheckError {
+    #[error("Configuration file not found. Run 'driftcheck init' to create one.")]
     ConfigNotFound,
 
     #[error("Invalid configuration: {0}")]
@@ -36,7 +36,7 @@ pub enum DocguardError {
     #[error("LLM request timed out after {0} seconds")]
     LlmTimeout(u64),
 
-    #[error("API key not found. Set DOCGUARD_API_KEY environment variable.")]
+    #[error("API key not found. Set DRIFTCHECK_API_KEY environment variable.")]
     ApiKeyNotFound,
 
     #[error("Failed to parse LLM response: {0}")]
@@ -54,8 +54,8 @@ pub enum DocguardError {
     #[error("TUI error: {0}")]
     TuiError(String),
 
-    #[error("docguard is disabled. Run 'docguard enable' to re-enable.")]
+    #[error("driftcheck is disabled. Run 'driftcheck enable' to re-enable.")]
     Disabled,
 }
 
-pub type Result<T> = std::result::Result<T, DocguardError>;
+pub type Result<T> = std::result::Result<T, DriftcheckError>;

@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "docguard")]
+#[command(name = "driftcheck")]
 #[command(author, version, about = "Documentation drift detection for Git", long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
@@ -10,7 +10,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Initialize docguard in the current repository
+    /// Initialize driftcheck in the current repository
     Init {
         /// Force overwrite existing configuration
         #[arg(short, long)]
@@ -39,10 +39,10 @@ pub enum Commands {
         path: bool,
     },
 
-    /// Enable docguard
+    /// Enable driftcheck
     Enable,
 
-    /// Disable docguard (without uninstalling)
+    /// Disable driftcheck (without uninstalling)
     Disable,
 
     /// Cache management

@@ -1,16 +1,16 @@
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Command;
 
 const HOOK_SCRIPT: &str = r#"#!/bin/sh
-# docguard pre-push hook
+# driftcheck pre-push hook
 # This hook is called with the following parameters:
 #   $1 -- Name of the remote to which the push is being done
 #   $2 -- URL to which the push is being done
 
-exec docguard hook
+exec driftcheck hook
 "#;
 
 /// Get the diff between upstream and HEAD (or custom range)
@@ -27,11 +27,11 @@ pub fn get_diff(range: &Option<String>) -> Result<String> {
     let output = Command::new("git")
         .args(["diff", &range])
         .output()
-        .map_err(|e| DocguardError::GitError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(DocguardError::GitError(stderr.to_string()));
+        return Err(DriftcheckError::GitError(stderr.to_string()));
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
@@ -42,10 +42,10 @@ fn get_upstream() -> Result<String> {
     let output = Command::new("git")
         .args(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
         .output()
-        .map_err(|e| DocguardError::GitError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
 
     if !output.status.success() {
-        return Err(DocguardError::NoUpstream);
+        return Err(DriftcheckError::NoUpstream);
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
@@ -59,19 +59,19 @@ pub fn install_hook(git_root: &Path, force: bool) -> Result<()> {
     // Create hooks directory if it doesn't exist
     if !hooks_dir.exists() {
         fs::create_dir_all(&hooks_dir)
-            .map_err(|e| DocguardError::HookInstallError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
     }
 
     // Check if hook already exists
     if hook_path.exists() && !force {
         // Read existing hook to check if it's ours
         let content = fs::read_to_string(&hook_path)
-            .map_err(|e| DocguardError::HookInstallError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
 
-        if !content.contains("docguard") {
-            return Err(DocguardError::HookInstallError(
+        if !content.contains("driftcheck") {
+            return Err(DriftcheckError::HookInstallError(
                 "A pre-push hook already exists. Use --force to overwrite, \
-                 or manually add 'docguard hook' to your existing hook."
+                 or manually add 'driftcheck hook' to your existing hook."
                     .to_string(),
             ));
         }
@@ -79,15 +79,15 @@ pub fn install_hook(git_root: &Path, force: bool) -> Result<()> {
 
     // Write the hook
     fs::write(&hook_path, HOOK_SCRIPT)
-        .map_err(|e| DocguardError::HookInstallError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
 
     // Make it executable
     let mut perms = fs::metadata(&hook_path)
-        .map_err(|e| DocguardError::HookInstallError(e.to_string()))?
+        .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?
         .permissions();
     perms.set_mode(0o755);
     fs::set_permissions(&hook_path, perms)
-        .map_err(|e| DocguardError::HookInstallError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
 
     Ok(())
 }
@@ -217,7 +217,7 @@ pub fn get_recent_commits(count: usize) -> Result<String> {
             "--name-only",
         ])
         .output()
-        .map_err(|e| DocguardError::GitError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
 
     if !output.status.success() {
         // Not fatal - just return empty
@@ -238,7 +238,7 @@ pub fn get_recently_changed_docs(count: usize) -> Result<Vec<String>> {
             "--diff-filter=AM", // Added or Modified
         ])
         .output()
-        .map_err(|e| DocguardError::GitError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
 
     if !output.status.success() {
         return Ok(vec![]);

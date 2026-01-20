@@ -1,6 +1,6 @@
 use crate::analyzer::Issue;
 use crate::config::Config;
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use crate::tui::Theme;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
@@ -74,28 +74,28 @@ impl App {
 
     pub async fn run(&mut self) -> Result<()> {
         // Setup terminal
-        enable_raw_mode().map_err(|e| DocguardError::TuiError(e.to_string()))?;
+        enable_raw_mode().map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture)
-            .map_err(|e| DocguardError::TuiError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
         let backend = CrosstermBackend::new(stdout);
         let mut terminal =
-            Terminal::new(backend).map_err(|e| DocguardError::TuiError(e.to_string()))?;
+            Terminal::new(backend).map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
 
         // Run the app
         let result = self.run_loop(&mut terminal).await;
 
         // Restore terminal
-        disable_raw_mode().map_err(|e| DocguardError::TuiError(e.to_string()))?;
+        disable_raw_mode().map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
         execute!(
             terminal.backend_mut(),
             LeaveAlternateScreen,
             DisableMouseCapture
         )
-        .map_err(|e| DocguardError::TuiError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
         terminal
             .show_cursor()
-            .map_err(|e| DocguardError::TuiError(e.to_string()))?;
+            .map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
 
         result
     }
@@ -110,7 +110,7 @@ impl App {
 
             terminal
                 .draw(|f| self.draw(f))
-                .map_err(|e| DocguardError::TuiError(e.to_string()))?;
+                .map_err(|e| DriftcheckError::TuiError(e.to_string()))?;
 
             // Use shorter poll time when task is active (for spinner animation)
             let poll_duration = if self.active_task.is_some() {
@@ -119,9 +119,9 @@ impl App {
                 std::time::Duration::from_millis(100)
             };
 
-            if event::poll(poll_duration).map_err(|e| DocguardError::TuiError(e.to_string()))? {
+            if event::poll(poll_duration).map_err(|e| DriftcheckError::TuiError(e.to_string()))? {
                 if let Event::Key(key) =
-                    event::read().map_err(|e| DocguardError::TuiError(e.to_string()))?
+                    event::read().map_err(|e| DriftcheckError::TuiError(e.to_string()))?
                 {
                     self.handle_key(key.code, key.modifiers);
                 }
@@ -132,7 +132,7 @@ impl App {
             }
 
             if self.should_abort {
-                return Err(DocguardError::TuiError("Push aborted by user".to_string()));
+                return Err(DriftcheckError::TuiError("Push aborted by user".to_string()));
             }
         }
 
@@ -363,7 +363,7 @@ impl App {
             .count();
 
         let title = format!(
-            " docguard - {} issues ({} pending, {} applied, {} skipped) ",
+            " driftcheck - {} issues ({} pending, {} applied, {} skipped) ",
             self.issues.len(),
             pending,
             applied,
@@ -641,7 +641,7 @@ async fn apply_fix_task(config: Config, issue: Issue) -> Result<String> {
 
     // Read the current file content
     let original_content = fs::read_to_string(file_path).map_err(|e| {
-        DocguardError::TuiError(format!("Failed to read {}: {}", file_path.display(), e))
+        DriftcheckError::TuiError(format!("Failed to read {}: {}", file_path.display(), e))
     })?;
 
     // Generate the fix using LLM
@@ -649,7 +649,7 @@ async fn apply_fix_task(config: Config, issue: Issue) -> Result<String> {
 
     // Write the fixed content
     fs::write(file_path, &fixed_content).map_err(|e| {
-        DocguardError::TuiError(format!("Failed to write {}: {}", file_path.display(), e))
+        DriftcheckError::TuiError(format!("Failed to write {}: {}", file_path.display(), e))
     })?;
 
     Ok(format!("Applied fix to {}", file_path.display()))

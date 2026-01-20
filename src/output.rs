@@ -3,7 +3,7 @@ use crate::analyzer::Issue;
 /// Print issues in a non-TTY friendly format
 pub fn print_issues(issues: &[Issue]) {
     eprintln!();
-    eprintln!("docguard: Documentation drift detected!");
+    eprintln!("driftcheck: Documentation drift detected!");
     eprintln!();
     eprintln!("{}", "━".repeat(72));
     eprintln!();

@@ -1,5 +1,5 @@
 use crate::config::DocsConfig;
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use crate::llm::DocChunk;
 use glob::glob;
 use std::collections::HashSet;
@@ -9,7 +9,7 @@ use tracing::{debug, warn};
 
 /// Check if ripgrep is installed
 pub fn check_ripgrep() -> Result<()> {
-    which::which("rg").map_err(|_| DocguardError::RipgrepNotFound)?;
+    which::which("rg").map_err(|_| DriftcheckError::RipgrepNotFound)?;
     Ok(())
 }
 
@@ -129,12 +129,12 @@ fn search_query(query: &str, files: &[PathBuf]) -> Result<Vec<DocChunk>> {
         ])
         .args(&file_args)
         .output()
-        .map_err(|e| DocguardError::SearchError(e.to_string()))?;
+        .map_err(|e| DriftcheckError::SearchError(e.to_string()))?;
 
     // ripgrep returns exit code 1 if no matches (which is fine)
     if !output.status.success() && output.status.code() != Some(1) {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(DocguardError::SearchError(stderr.to_string()));
+        return Err(DriftcheckError::SearchError(stderr.to_string()));
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);

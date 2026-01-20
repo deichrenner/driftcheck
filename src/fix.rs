@@ -1,6 +1,6 @@
 use crate::analyzer::Issue;
 use crate::config::Config;
-use crate::error::{DocguardError, Result};
+use crate::error::{DriftcheckError, Result};
 use crate::llm;
 use std::env;
 use std::fs;
@@ -9,7 +9,7 @@ use std::process::Command;
 /// Apply a fix to an issue
 pub async fn apply_fix(config: &Config, issue: &Issue) -> Result<()> {
     // Read the current file content
-    let content = fs::read_to_string(&issue.file).map_err(|e| DocguardError::FixApplicationError {
+    let content = fs::read_to_string(&issue.file).map_err(|e| DriftcheckError::FixApplicationError {
         path: issue.file.clone(),
         reason: e.to_string(),
     })?;
@@ -35,9 +35,9 @@ pub async fn apply_fix(config: &Config, issue: &Issue) -> Result<()> {
 fn apply_patch(file: &str, patch: &str) -> Result<()> {
     // Write patch to temp file
     let temp_dir = env::temp_dir();
-    let patch_file = temp_dir.join("docguard_patch.diff");
+    let patch_file = temp_dir.join("driftcheck_patch.diff");
 
-    fs::write(&patch_file, patch).map_err(|e| DocguardError::FixApplicationError {
+    fs::write(&patch_file, patch).map_err(|e| DriftcheckError::FixApplicationError {
         path: file.into(),
         reason: format!("Failed to write patch file: {}", e),
     })?;
@@ -47,7 +47,7 @@ fn apply_patch(file: &str, patch: &str) -> Result<()> {
         .args(["-p1", "--forward", "--input"])
         .arg(&patch_file)
         .output()
-        .map_err(|e| DocguardError::FixApplicationError {
+        .map_err(|e| DriftcheckError::FixApplicationError {
             path: file.into(),
             reason: format!("Failed to run patch command: {}", e),
         })?;
@@ -57,7 +57,7 @@ fn apply_patch(file: &str, patch: &str) -> Result<()> {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(DocguardError::FixApplicationError {
+        return Err(DriftcheckError::FixApplicationError {
             path: file.into(),
             reason: format!("Patch failed: {}", stderr),
         });
@@ -77,13 +77,13 @@ pub fn open_in_editor(file: &str, line: usize) -> Result<()> {
         .arg(&line_arg)
         .arg(file)
         .status()
-        .map_err(|e| DocguardError::FixApplicationError {
+        .map_err(|e| DriftcheckError::FixApplicationError {
             path: file.into(),
             reason: format!("Failed to open editor: {}", e),
         })?;
 
     if !status.success() {
-        return Err(DocguardError::FixApplicationError {
+        return Err(DriftcheckError::FixApplicationError {
             path: file.into(),
             reason: "Editor exited with error".to_string(),
         });
