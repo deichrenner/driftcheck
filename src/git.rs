@@ -1,8 +1,10 @@
 use crate::error::{DriftcheckError, Result};
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Command;
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 const HOOK_SCRIPT: &str = r#"#!/bin/sh
 # driftcheck pre-push hook
@@ -81,13 +83,16 @@ pub fn install_hook(git_root: &Path, force: bool) -> Result<()> {
     fs::write(&hook_path, HOOK_SCRIPT)
         .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
 
-    // Make it executable
-    let mut perms = fs::metadata(&hook_path)
-        .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?
-        .permissions();
-    perms.set_mode(0o755);
-    fs::set_permissions(&hook_path, perms)
-        .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
+    // Make it executable (Unix only - Windows doesn't need this)
+    #[cfg(unix)]
+    {
+        let mut perms = fs::metadata(&hook_path)
+            .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?
+            .permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&hook_path, perms)
+            .map_err(|e| DriftcheckError::HookInstallError(e.to_string()))?;
+    }
 
     Ok(())
 }
