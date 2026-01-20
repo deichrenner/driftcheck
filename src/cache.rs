@@ -126,13 +126,12 @@ pub fn stats() -> Result<CacheStats> {
 
     for entry in fs::read_dir(&cache_dir)
         .map_err(|e| DriftcheckError::CacheError(e.to_string()))?
+        .flatten()
     {
-        if let Ok(entry) = entry {
-            if let Ok(meta) = entry.metadata() {
-                if meta.is_file() {
-                    entries += 1;
-                    size_bytes += meta.len();
-                }
+        if let Ok(meta) = entry.metadata() {
+            if meta.is_file() {
+                entries += 1;
+                size_bytes += meta.len();
             }
         }
     }

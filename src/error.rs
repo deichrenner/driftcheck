@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -47,9 +46,6 @@ pub enum DriftcheckError {
 
     #[error("Hook installation failed: {0}")]
     HookInstallError(String),
-
-    #[error("Failed to apply fix to {path}: {reason}")]
-    FixApplicationError { path: PathBuf, reason: String },
 
     #[error("TUI error: {0}")]
     TuiError(String),

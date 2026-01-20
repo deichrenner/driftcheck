@@ -176,8 +176,6 @@ pub async fn analyze_consistency(
     diff: &str,
     doc_chunks: &[DocChunk],
 ) -> Result<Vec<RawIssue>> {
-    use crate::git;
-
     if doc_chunks.is_empty() {
         return Ok(vec![]);
     }
@@ -235,21 +233,6 @@ fn parse_issues(response: &str) -> Result<Vec<RawIssue>> {
         .map_err(|e| DriftcheckError::LlmResponseParse(format!("Failed to parse issues: {}", e)))?;
 
     Ok(issues)
-}
-
-/// Generate a fix suggestion for an issue
-pub async fn generate_fix(config: &Config, issue: &RawIssue, doc_content: &str) -> Result<String> {
-    let client = LlmClient::new(&config.llm)?;
-
-    let user_message = format!(
-        "Issue: {}\n\nDoc file: {}\nDoc content:\n{}\n\nSuggested fix description: {}",
-        issue.description,
-        issue.file,
-        doc_content,
-        issue.suggested_fix.as_deref().unwrap_or("(none provided)")
-    );
-
-    client.chat(&config.prompts.suggestions, &user_message).await
 }
 
 #[derive(Debug, Clone)]

@@ -33,13 +33,6 @@ impl Progress {
         }
     }
 
-    /// Mark progress as complete with a success message
-    pub fn finish_with_message(&self, msg: impl Into<String>) {
-        if let Some(ref bar) = self.bar {
-            bar.finish_with_message(format!("✓ {}", msg.into()));
-        }
-    }
-
     /// Mark progress as complete (clear the line)
     pub fn finish_and_clear(&self) {
         if let Some(ref bar) = self.bar {
@@ -92,10 +85,5 @@ impl MultiProgress {
     /// Finish all progress
     pub fn finish(&self) {
         self.progress.finish_and_clear();
-    }
-
-    /// Finish with a summary message
-    pub fn finish_with_message(&self, msg: impl Into<String>) {
-        self.progress.finish_with_message(msg);
     }
 }
