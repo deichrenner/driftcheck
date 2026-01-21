@@ -1,0 +1,98 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout driftcheck repo
+        uses: actions/checkout@v4
+
+      - name: Download release assets and compute checksums
+        id: checksums
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Download all binaries and compute SHA256
+          for platform in macos-aarch64 macos-x86_64 linux-aarch64 linux-x86_64; do
+            curl -sL "https://github.com/deichrenner/driftcheck/releases/download/${{ github.ref_name }}/driftcheck-${platform}" -o "driftcheck-${platform}"
+            sha=$(shasum -a 256 "driftcheck-${platform}" | cut -d' ' -f1)
+            echo "sha_${platform//-/_}=$sha" >> $GITHUB_OUTPUT
+          done
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: deichrenner/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update formula
+        run: |
+          cat > homebrew-tap/Formula/driftcheck.rb << 'FORMULA'
+          class Driftcheck < Formula
+            desc "Pre-push hook that detects documentation drift using LLMs"
+            homepage "https://github.com/deichrenner/driftcheck"
+            version "${{ steps.checksums.outputs.version }}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/deichrenner/driftcheck/releases/download/v#{version}/driftcheck-macos-aarch64"
+                sha256 "${{ steps.checksums.outputs.sha_macos_aarch64 }}"
+
+                def install
+                  bin.install "driftcheck-macos-aarch64" => "driftcheck"
+                end
+              end
+              on_intel do
+                url "https://github.com/deichrenner/driftcheck/releases/download/v#{version}/driftcheck-macos-x86_64"
+                sha256 "${{ steps.checksums.outputs.sha_macos_x86_64 }}"
+
+                def install
+                  bin.install "driftcheck-macos-x86_64" => "driftcheck"
+                end
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/deichrenner/driftcheck/releases/download/v#{version}/driftcheck-linux-aarch64"
+                sha256 "${{ steps.checksums.outputs.sha_linux_aarch64 }}"
+
+                def install
+                  bin.install "driftcheck-linux-aarch64" => "driftcheck"
+                end
+              end
+              on_intel do
+                url "https://github.com/deichrenner/driftcheck/releases/download/v#{version}/driftcheck-linux-x86_64"
+                sha256 "${{ steps.checksums.outputs.sha_linux_x86_64 }}"
+
+                def install
+                  bin.install "driftcheck-linux-x86_64" => "driftcheck"
+                end
+              end
+            end
+
+            depends_on "ripgrep"
+
+            test do
+              assert_match "driftcheck", shell_output("#{bin}/driftcheck --help")
+            end
+          end
+          FORMULA
+
+      - name: Commit and push
+        working-directory: homebrew-tap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/driftcheck.rb
+          git commit -m "driftcheck ${{ steps.checksums.outputs.version }}"
+          git push

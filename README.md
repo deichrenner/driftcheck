@@ -18,7 +18,14 @@ When you change code, driftcheck automatically finds related documentation and c
 
 ## Installation
 
-### Pre-built Binaries (Recommended)
+### Homebrew (macOS/linux)
+
+```bash
+brew tap deichrenner/tap
+brew install driftcheck
+```
+
+### Pre-built Binaries
 
 Download from [GitHub Releases](https://github.com/deichrenner/driftcheck/releases):
 
