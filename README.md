@@ -198,6 +198,7 @@ DRIFTCHECK_API_KEY=sk-...
 ```
 
 driftcheck automatically loads `.env` files from:
+
 1. Git repository root
 2. Current working directory
 
@@ -213,13 +214,13 @@ This is useful for CI systems that write secrets to temporary files.
 
 ### Environment Variables Reference
 
-| Variable | Description |
-|----------|-------------|
-| `DRIFTCHECK_API_KEY` | LLM API key |
+| Variable                  | Description                     |
+|---------------------------|---------------------------------|
+| `DRIFTCHECK_API_KEY`      | LLM API key                     |
 | `DRIFTCHECK_API_KEY_FILE` | Path to file containing API key |
-| `DRIFTCHECK_CONFIG` | Custom config file path |
-| `DRIFTCHECK_DISABLED=1` | Disable without editing config |
-| `DRIFTCHECK_DEBUG=1` | Enable verbose logging |
+| `DRIFTCHECK_CONFIG`       | Custom config file path         |
+| `DRIFTCHECK_DISABLED=1`   | Disable without editing config  |
+| `DRIFTCHECK_DEBUG=1`      | Enable verbose logging          |
 
 ## CI Integration
 
@@ -232,7 +233,7 @@ name: Documentation Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   driftcheck:
@@ -308,15 +309,15 @@ workflows:
 
 When issues are detected in a TTY, driftcheck launches an interactive TUI:
 
-| Key | Action |
-|-----|--------|
-| `a` | Apply fix (generates fix via LLM, writes to file) |
-| `s` | Skip this issue |
-| `j` / `↓` | Next issue |
-| `k` / `↑` | Previous issue |
-| `Enter` | Confirm all and continue push |
-| `q` / `Esc` | Abort push |
-| `?` | Show help |
+| Key         | Action                                            |
+|-------------|---------------------------------------------------|
+| `a`         | Apply fix (generates fix via LLM, writes to file) |
+| `s`         | Skip this issue                                   |
+| `j` / `↓`   | Next issue                                        |
+| `k` / `↑`   | Previous issue                                    |
+| `Enter`     | Confirm all and continue push                     |
+| `q` / `Esc` | Abort push                                        |
+| `?`         | Show help                                         |
 
 ### Apply Fix Workflow
 
@@ -332,13 +333,13 @@ After exiting the TUI, review all changes with `git diff` before committing.
 
 ### Issue States
 
-| Symbol | State | Description |
-|--------|-------|-------------|
-| `○` | Pending | Not yet addressed |
-| `⠋` | Applying | Fix being generated (animated spinner) |
-| `✓` | Applied | Fix has been written to file |
-| `⊘` | Skipped | Manually skipped |
-| `✗` | Error | Fix generation failed |
+| Symbol | State    | Description                            |
+|--------|----------|----------------------------------------|
+| `○`    | Pending  | Not yet addressed                      |
+| `⠋`    | Applying | Fix being generated (animated spinner) |
+| `✓`    | Applied  | Fix has been written to file           |
+| `⊘`    | Skipped  | Manually skipped                       |
+| `✗`    | Error    | Fix generation failed                  |
 
 ## Using with Different LLM Providers
 
@@ -386,13 +387,13 @@ export DRIFTCHECK_API_KEY=sk-or-...
 
 ## Behavior Matrix
 
-| Scenario | TTY Available | Action |
-|----------|---------------|--------|
-| No issues detected | Yes/No | Push proceeds |
-| Issues detected | Yes | Launch TUI for review |
-| Issues detected | No | Block push, print errors |
-| LLM timeout/error | Yes/No | Warn, proceed if `allow_push_on_error` |
-| Config missing | Yes/No | Block, print setup instructions |
+| Scenario           | TTY Available | Action                                 |
+|--------------------|---------------|----------------------------------------|
+| No issues detected | Yes/No        | Push proceeds                          |
+| Issues detected    | Yes           | Launch TUI for review                  |
+| Issues detected    | No            | Block push, print errors               |
+| LLM timeout/error  | Yes/No        | Warn, proceed if `allow_push_on_error` |
+| Config missing     | Yes/No        | Block, print setup instructions        |
 
 ## Reducing False Positives
 
@@ -404,6 +405,7 @@ driftcheck is designed to be conservative, but if you're still seeing too many f
 4. **Use ignore patterns** to exclude generated or less important docs
 
 The default prompt only flags issues where documentation is **factually wrong** due to code changes. It ignores:
+
 - Missing documentation for new features
 - Stylistic suggestions
 - Vague but technically correct documentation
