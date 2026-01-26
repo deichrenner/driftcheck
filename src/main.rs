@@ -101,7 +101,7 @@ async fn cmd_check(range: Option<String>, no_tui: bool) -> Result<()> {
     }
 
     // Get the diff
-    let diff = git::get_diff(&range)?;
+    let diff = git::get_diff(&range, &config.general.fallback_base)?;
 
     if diff.is_empty() {
         println!("No changes to check.");
@@ -225,12 +225,8 @@ async fn cmd_hook() -> Result<()> {
         return Ok(());
     }
 
-    let diff = match git::get_diff(&None) {
+    let diff = match git::get_diff(&None, &config.general.fallback_base) {
         Ok(d) => d,
-        Err(DriftcheckError::NoUpstream) => {
-            // No upstream, likely first push, allow
-            return Ok(());
-        }
         Err(e) => {
             if config.general.allow_push_on_error {
                 eprintln!("driftcheck warning: {}", e);

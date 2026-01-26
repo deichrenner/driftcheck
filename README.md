@@ -98,8 +98,13 @@ repos:
       - id: driftcheck
 ```
 
-This requires driftcheck to be installed on your system (via Homebrew, binary download, or cargo). The hook runs on
-`pre-push` and uses `--no-tui` mode for compatibility with pre-commit's output handling.
+Then install the pre-push hook (required since driftcheck runs on push, not commit):
+
+```bash
+pre-commit install --hook-type pre-push
+```
+
+This requires driftcheck to be installed on your system (via Homebrew, binary download, or cargo). The hook uses `--no-tui` mode for compatibility with pre-commit's output handling.
 
 You'll still need to:
 
@@ -129,6 +134,16 @@ You'll still need to:
 │                                                            │
 └────────────────────────────────────────────────────────────┘
 ```
+
+### Git Flow Support
+
+When pushing a new feature branch for the first time (before setting an upstream), driftcheck automatically falls back to comparing against the default branch:
+
+1. **Upstream tracking branch** (`@{u}`) — Used if available
+2. **Config `fallback_base`** — If set in `.driftcheck.toml`
+3. **Auto-detected default branch** — Checks `origin/HEAD`, then `origin/main`, then `origin/master`
+
+This ensures new branches are still checked for documentation drift without requiring manual configuration.
 
 ### Analysis Approach
 
@@ -167,6 +182,7 @@ Configuration is stored in `.driftcheck.toml` (or `driftcheck.toml`) in your rep
 [general]
 enabled = true
 allow_push_on_error = false  # If true, push proceeds even on LLM errors
+# fallback_base = "origin/main"  # Used when no upstream (e.g., new branch push)
 
 [docs]
 paths = [

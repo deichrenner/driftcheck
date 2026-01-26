@@ -60,6 +60,8 @@ pub struct GeneralConfig {
     pub enabled: bool,
     #[serde(default)]
     pub allow_push_on_error: bool,
+    #[serde(default)]
+    pub fallback_base: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -172,6 +174,7 @@ impl Default for GeneralConfig {
         Self {
             enabled: true,
             allow_push_on_error: false,
+            fallback_base: None,
         }
     }
 }
