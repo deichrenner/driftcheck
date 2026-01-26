@@ -2,7 +2,8 @@
 
 A fast, reliable pre-push hook that detects documentation drift using LLMs.
 
-When you change code, driftcheck automatically finds related documentation and checks if your changes introduce any inconsistencies—before you push.
+When you change code, driftcheck automatically finds related documentation and checks if your changes introduce any
+inconsistencies—before you push.
 
 ## Features
 
@@ -84,6 +85,26 @@ export DRIFTCHECK_API_KEY=your-api-key
 # Make some changes, then push—driftcheck runs automatically
 git push
 ```
+
+## Pre-commit Integration
+
+If you use [pre-commit](https://pre-commit.com/), you can add driftcheck to your `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/deichrenner/driftcheck
+    rev: v0.1.5
+    hooks:
+      - id: driftcheck
+```
+
+This requires driftcheck to be installed on your system (via Homebrew, binary download, or cargo). The hook runs on
+`pre-push` and uses `--no-tui` mode for compatibility with pre-commit's output handling.
+
+You'll still need to:
+
+1. Create a `.driftcheck.toml` config file (or run `driftcheck init` once to generate one)
+2. Set your `DRIFTCHECK_API_KEY` environment variable
 
 ## How It Works
 

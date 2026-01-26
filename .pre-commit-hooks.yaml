@@ -1,0 +1,8 @@
+- id: driftcheck
+  name: driftcheck
+  description: Detect documentation drift using LLMs
+  entry: driftcheck check --no-tui
+  language: system
+  stages: [pre-push]
+  pass_filenames: false
+  always_run: true
