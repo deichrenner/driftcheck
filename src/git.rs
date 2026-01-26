@@ -16,13 +16,28 @@ exec driftcheck hook
 "#;
 
 /// Get the diff between upstream and HEAD (or custom range)
-pub fn get_diff(range: &Option<String>) -> Result<String> {
+///
+/// Fallback priority when no explicit range is provided:
+/// 1. Upstream tracking branch (`@{u}`)
+/// 2. Config `fallback_base` (if set)
+/// 3. Auto-detected default branch (origin/HEAD → origin/main → origin/master)
+/// 4. Error with helpful message
+pub fn get_diff(range: &Option<String>, fallback_base: &Option<String>) -> Result<String> {
     let range = match range {
         Some(r) => r.clone(),
         None => {
-            // Get the upstream tracking branch
-            let upstream = get_upstream()?;
-            format!("{}..HEAD", upstream)
+            match get_upstream() {
+                Ok(upstream) => format!("{}..HEAD", upstream),
+                Err(DriftcheckError::NoUpstream) => {
+                    // Fallback chain: config value -> auto-detect -> error
+                    let base = fallback_base
+                        .clone()
+                        .or_else(|| get_default_branch().ok())
+                        .ok_or(DriftcheckError::NoUpstream)?;
+                    format!("{}..HEAD", base)
+                }
+                Err(e) => return Err(e),
+            }
         }
     };
 
@@ -51,6 +66,49 @@ fn get_upstream() -> Result<String> {
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+/// Auto-detect the default branch with a graceful fallback chain:
+/// 1. Try git symbolic-ref refs/remotes/origin/HEAD (e.g., "refs/remotes/origin/main")
+/// 2. If that fails, check if origin/main exists
+/// 3. If that fails, check if origin/master exists
+/// 4. If all fail, return Err(NoUpstream)
+fn get_default_branch() -> Result<String> {
+    // Try symbolic-ref first (most reliable when set)
+    let output = Command::new("git")
+        .args(["symbolic-ref", "refs/remotes/origin/HEAD"])
+        .output()
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
+
+    if output.status.success() {
+        let full_ref = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        // Parse "refs/remotes/origin/main" to "origin/main"
+        if let Some(branch) = full_ref.strip_prefix("refs/remotes/") {
+            return Ok(branch.to_string());
+        }
+    }
+
+    // Fallback: check if origin/main exists
+    let output = Command::new("git")
+        .args(["rev-parse", "--verify", "origin/main"])
+        .output()
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
+
+    if output.status.success() {
+        return Ok("origin/main".to_string());
+    }
+
+    // Fallback: check if origin/master exists
+    let output = Command::new("git")
+        .args(["rev-parse", "--verify", "origin/master"])
+        .output()
+        .map_err(|e| DriftcheckError::GitError(e.to_string()))?;
+
+    if output.status.success() {
+        return Ok("origin/master".to_string());
+    }
+
+    Err(DriftcheckError::NoUpstream)
 }
 
 /// Install the pre-push hook
